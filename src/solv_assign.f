@@ -300,7 +300,8 @@ c checking ST and SV parameters
 	do i=1,na_u
 	  if(qmattype(i).ne.'HO'.and.qmattype(i).ne.'HW') then
 	  if(Rm(i).eq.0.or.Em(i).eq.0) then
-	    write(6,'(a,i6)') 'solvent: Wrong solute LJ parameter, atom:', i
+	    write(6,'(a,i6)') 'solvent: Wrong 
+     .            solute LJ parameter, atom:', i
 	    STOP
 	  endif
 	  endif

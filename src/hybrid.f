@@ -266,6 +266,7 @@
       writeipl = fdf_boolean('WriIniParLas',.false.)
 
 ! Read and assign Solvent variables 
+      nroaa = 0
       if(mm) then
         call solv_assign(na_u,natot,nac,nroaa,Em,Rm,attype,pc,
      .  ng1,bondxat,angexat,atange,angmxat,atangm,dihexat,atdihe,
