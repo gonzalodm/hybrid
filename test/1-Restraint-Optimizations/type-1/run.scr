@@ -1,7 +1,0 @@
-#!/bin/bash
-
-../../../bin/hybrid < DALA.fdf >> DALA.out
-
-
-
-

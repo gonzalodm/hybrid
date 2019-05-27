@@ -1,8 +1,0 @@
-#!/bin/bash
-../../../bin/hybrid < GCG.fdf >> GCG.out
-
-
-
-
-
-

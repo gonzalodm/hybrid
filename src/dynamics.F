@@ -81,14 +81,16 @@ C ........................
 
 C Allocate local memory - only done once as data must be saved. As a
 C result the memory is not deallocated at the end of the routine.
-      if (.not.allocated(accold)) then
-        allocate(accold(3,natoms))
+!  LIO SE ENCARGA DE LAS VEL ======================================0
+      !if (.not.allocated(accold)) then
+      !  allocate(accold(3,natoms))
 C        call memory('A','D',3*natoms,'verlet2')
-      endif
-      if (.not.allocated(vold)) then
-        allocate(vold(3,natoms))
+      !endif
+      !if (.not.allocated(vold)) then
+      !  allocate(vold(3,natoms))
 C        call memory('A','D',3*natoms,'verlet2')
-      endif
+      !endif
+! ==================================================================
 
 C Define constants and conversion factors .....................................
       dt2   = dt**2
@@ -106,25 +108,27 @@ C convert F/m in (Hartree/Bohr)/amu  to  Bohr/fs**2
       endif
 C .............................................................................
 
+!================ ESTO LO HACE LIO AHORA =====================================
 C Compute old accelerations and velocities
 C  if the time step is the first of the simulation ...........................
-      if (istep .eq. 1) then
-        do ia = 1,natoms
-          do i = 1,3
-            accold(i,ia) = fovermp * fa(i,ia) / ma(ia)
-            vold(i,ia) = va(i,ia) - dt * accold(i,ia)
-          enddo
-        enddo
-      endif
+!     if (istep .eq. 1) then
+!       do ia = 1,natoms
+!         do i = 1,3
+!           accold(i,ia) = fovermp * fa(i,ia) / ma(ia)
+!           vold(i,ia) = va(i,ia) - dt * accold(i,ia)
+!         enddo
+!       enddo
+!     endif
 C ....................
 
 C Compute velocities at current time step ...................................
-	do ia = 1,natoms
-        do i = 1,3
-          va(i,ia) = vold(i,ia) + dtby2 
-     .               * (accold(i,ia) + fovermp * fa(i,ia) / ma(ia))
-        enddo
-      enddo
+!	do ia = 1,natoms
+!        do i = 1,3
+!          va(i,ia) = vold(i,ia) + dtby2 
+!     .               * (accold(i,ia) + fovermp * fa(i,ia) / ma(ia))
+!        enddo
+!      enddo
+! ==========================================================================
 
 C Quench option if iquench = 0 ..............................................
       if (iquench .eq. 1) then
@@ -150,12 +154,14 @@ C Compute positions at next time step.....................................
 C ...................
 
 C Save current velocities and accelerations as old ones .....................
-      do i = 1,3
-        do ia = 1,natoms
-          vold(i,ia) = va(i,ia)
-          accold(i,ia) = fovermp * fa(i,ia) / ma(ia)
-        enddo
-      enddo
+!  ESTO LO HACE LIO ================================================
+!     do i = 1,3
+!       do ia = 1,natoms
+!         vold(i,ia) = va(i,ia)
+!         accold(i,ia) = fovermp * fa(i,ia) / ma(ia)
+!       enddo
+!     enddo
+!===================================================================
 C ....................
 
 C Calculate kinetic energy and temperature at current time ...................

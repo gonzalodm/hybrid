@@ -148,6 +148,7 @@
       double precision, allocatable, dimension(:,:) :: r_cut_QMMM,
      .  F_cut_QMMM
       double precision, allocatable, dimension(:) :: Iz_cut_QMMM
+      double precision, allocatable, dimension(:,:) :: vel_cut_QMMM ! GONZA
       integer :: at_MM_cut_QMMM, r_cut_pos
       double precision :: r12 !auxiliar
       integer :: i_qm, i_mm ! auxiliars
@@ -399,7 +400,7 @@
       if(qm) then
         Etot=0.d0
         fa=0.d0
-        call init_lio_hybrid(na_u, nac, charge, iza, spin)
+        call init_lio_hybrid(na_u, nac, charge, iza, spin, dt)
 
 ! calculate cell volume
         volume = volcel( ucell )
@@ -503,99 +504,44 @@ C Calculate Rcut & block list QM-MM
             if (allocated(r_cut_QMMM)) deallocate(r_cut_QMMM)
             if (allocated(F_cut_QMMM)) deallocate(F_cut_QMMM)
             if (allocated(Iz_cut_QMMM)) deallocate(Iz_cut_QMMM)
+            if (allocated(vel_cut_QMMM)) deallocate(vel_cut_QMMM)!GONZA
  
             call compute_cutsqmmm(at_MM_cut_QMMM,istepconstr,radbloqmmm,
      .      rcorteqmmm,nroaa,atxres)
 
             allocate (r_cut_QMMM(3,at_MM_cut_QMMM+na_u), 
      .      F_cut_QMMM(3,at_MM_cut_QMMM+na_u), 
-     .      Iz_cut_QMMM(at_MM_cut_QMMM+na_u))
+     .      Iz_cut_QMMM(at_MM_cut_QMMM+na_u),
+     .      vel_cut_QMMM(3,na_u)) ! GONZA
             r_cut_QMMM=0.d0
             F_cut_QMMM=0.d0
             Iz_cut_QMMM=0
-
-
-c	  recompute_cuts=.true.
-c	  if (istep.eq.inicoor) recompute_cuts=.true.
-c	  if (replica_number.gt.1) recompute_cuts=.false.
-
-c	  if (recompute_cuts) then ! define lista de interacciones en el primer paso de cada valor del restrain
-c	    if (allocated(r_cut_QMMM)) deallocate(r_cut_QMMM)
-c	    if (allocated(F_cut_QMMM)) deallocate(F_cut_QMMM)
-c	    if (allocated(Iz_cut_QMMM)) deallocate(Iz_cut_QMMM)
-c	    r_cut_list_QMMM=0
-c	    r_cut_pos=0
-c	    at_MM_cut_QMMM=0
-
-c	    if (istepconstr.eq.1) then
-c		MM_freeze_list=.true.
-c		do i_qm=1,na_u
-c		  MM_freeze_list(i_qm)=.false.
-c		end do
-c	    end if
-
-c	    do i_mm=1, nac !MM atoms
-c	      i_qm=0
-c	      done=.false.
-c              done_freeze=.false.
-c              done_QMMM=.false.
-c	      do while (i_qm .lt. na_u .and. .not. done) !QM atoms
-c	        i_qm=i_qm+1
-c                r12=(rclas(1,i_qm)-rclas(1,i_mm+na_u))**2.d0 +
-c     .              (rclas(2,i_qm)-rclas(2,i_mm+na_u))**2.d0 +
-c     .              (rclas(3,i_qm)-rclas(3,i_mm+na_u))**2.d0
-c
-c	        if(r12 .lt. rcorteqmmm .and. .not. done_QMMM) then
-c	          done_QMMM=.true.
-c	          at_MM_cut_QMMM=at_MM_cut_QMMM+1
-c	          r_cut_pos=r_cut_pos+1
-c	          r_cut_list_QMMM(i_mm)=r_cut_pos
-c	        end if
-
-
-
-c		if (istepconstr.eq.1) then !define lista de movimiento para la 1er foto
-c	          if(r12 .lt. radbloqmmm .and. .not. done_freeze) then
-c	             MM_freeze_list(i_mm+na_u)=.false.
-c	             done_freeze=.true.
-c	          end if
-c		end if
-c
-
-
-c		done=done_QMMM .and. done_freeze
-c	      end do
-c	    end do
-
-
-c	  allocate (r_cut_QMMM(3,at_MM_cut_QMMM+na_u),
-c     .    F_cut_QMMM(3,at_MM_cut_QMMM+na_u),
-c     .    Iz_cut_QMMM(at_MM_cut_QMMM+na_u))
-
-c	  r_cut_QMMM=0.d0
-c	  F_cut_QMMM=0.d0
-c	  Iz_cut_QMMM=0
-c	  end if
-
+            vel_cut_QMMM= 0.0d0
 
 !copy position and nuclear charges to cut-off arrays
           do i=1,natot !barre todos los atomos
             if (i.le.na_u) then !QM atoms
               r_cut_QMMM(1:3,i)= rclas(1:3,i)
+              vel_cut_QMMM(1:3,i) = vat(1:3,i) ! COPY VEL QM
             else if (r_cut_list_QMMM(i-na_u) .ne. 0) then !MM atoms inside cutoff
 	      r_cut_QMMM(1:3,r_cut_list_QMMM(i-na_u)+na_u) = rclas(1:3,i)
               Iz_cut_QMMM(r_cut_list_QMMM(i-na_u))= pc(i-na_u)
             end if
           end do
-	  call SCF_hyb(na_u, at_MM_cut_QMMM, r_cut_QMMM, Etot, 
-     .     F_cut_QMMM,
-     .     Iz_cut_QMMM, do_SCF, do_QM_forces, do_properties) !fuerzas lio, Nick
-
+          ! na_u = numeros de atoms QM
+          ! at_MM_cut_QMMM = numeros de atomos MM
+          ! r_cut_QMMM = cordenadas de los atomos QM
+          ! F_cut_QMMM = fuerzas QM
+          ! vel_cut_QMMM = velocidades de los atomos QM
+	  call SCF_hyb(na_u, at_MM_cut_QMMM, r_cut_QMMM, vel_cut_QMMM, 
+     .                 Etot,F_cut_QMMM,Iz_cut_QMMM, do_SCF, 
+     .                 do_QM_forces, do_properties) !fuerzas lio, Nick
 
 c return forces to fullatom arrays
           do i=1, natot
 	    if (i.le.na_u) then !QM atoms
 	      fdummy(1:3,i)=F_cut_QMMM(1:3,i)
+              vat(1:3,i) = vel_cut_QMMM(1:3,i)
 	    else if (r_cut_list_QMMM(i-na_u).ne.0) then !MM atoms in cut-off
               fdummy(1:3,i)=
      .        F_cut_QMMM(1:3,r_cut_list_QMMM(i-na_u)+na_u)
@@ -603,6 +549,10 @@ c return forces to fullatom arrays
           end do
         endif !qm    termino el if(qm)
 ! here Etot in Hartree, fdummy in Hartree/bohr
+        print*, "f(t) en hyb"
+        do i=1,na_u
+           print*,i,fdummy(1,i),fdummy(2,i),fdummy(3,i)
+        enddo
 
 ! Start MMxQM loop
           do imm=1,mmsteps    !<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<< MMxQM Steps
@@ -1019,11 +969,12 @@ c     .        cfdummy(1:3,itest)*kcal/(eV *Ang)  ! Ang, kcal/ang mol
 
 
 ! properties calculation in lio for optimized geometry
+! GONZA: comente esto para que no llame a lio cuando la dinamica ya termino
       if (idyn .ne. 1 .and. qm) then
       do_properties=.true.
-      call SCF_hyb(na_u, at_MM_cut_QMMM, r_cut_QMMM, Etot,
-     .     F_cut_QMMM,
-     .     Iz_cut_QMMM, do_SCF, do_QM_forces, do_properties)
+!      call SCF_hyb(na_u, at_MM_cut_QMMM, r_cut_QMMM, Etot,
+!     .     F_cut_QMMM,
+!     .     Iz_cut_QMMM, do_SCF, do_QM_forces, do_properties)
       do_properties=.false.
       end if
       enddo !istepconstr                 <<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<< RESTRAIN Loop
