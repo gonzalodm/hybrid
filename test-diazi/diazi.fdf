@@ -35,7 +35,7 @@ AtomicCoordinatesFormat  Ang
 OptimizationScheme 0
  
 MD.TypeOfRun      Verlet
-MD.NumCGsteps     1000
+MD.NumCGsteps     2
 MD.LengthTimeStep 0.5 fs
 MD.InitialTemperature 300 K
 MD.TrajFrec       1

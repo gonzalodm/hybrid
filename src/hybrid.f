@@ -549,11 +549,6 @@ c return forces to fullatom arrays
           end do
         endif !qm    termino el if(qm)
 ! here Etot in Hartree, fdummy in Hartree/bohr
-        print*, "f(t) en hyb"
-        do i=1,na_u
-           print*,i,fdummy(1,i),fdummy(2,i),fdummy(3,i)
-        enddo
-
 ! Start MMxQM loop
           do imm=1,mmsteps    !<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<< MMxQM Steps
             step = step +1
