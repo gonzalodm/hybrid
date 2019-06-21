@@ -4,12 +4,10 @@ import sys
 import os
 import re
 import itertools
-#import argparse
-#import subprocess
 
 # ==============================================
 # This code converts a restart file of Amber to 
-# XV file to run a molecular dynamic wiht Hybrid
+# XV file to run a molecular dynamic with Hybrid
 # ==============================================
 
 
@@ -231,7 +229,7 @@ def convert(order,cA,vA):
 def obtainXV(coord,vel,NameFile):
    file_in = open(NameFile,"w")
 
-   # Write box parameter
+   # Write box parameters
    file_in.write("\t0.000000000\t0.000000000\t0.00000000\n")
    file_in.write("\t0.000000000\t0.000000000\t0.00000000\n")
    file_in.write("\t0.000000000\t0.000000000\t0.00000000\n")
@@ -246,7 +244,7 @@ def obtainXV(coord,vel,NameFile):
    # Vel in Amber   = [angstrom/20.455ps]
    for num in range(len(coord)):
       coord[num] = coord[num] * 1.88973  # Angstrom -> Bohr
-      temp = vel[num] / 20.455 * 1.88973 # Bohr/ps
+      temp = vel[num] * 20.455 * 1.88973 # Bohr/ps
       vel[num] = temp / 1000.0           # Bohr/fs
    # Coord in Hyb = [Bohr]
    # Vel in Hyb   = [Bohr/fs]
